@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAZZAR — Дашборд</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --border: #e2e8f0;
+  --text-1: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+  --green: #16a34a;
+  --green-light: #f0fdf4;
+  --green-mid: #bbf7d0;
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --amber: #d97706;
+  --amber-light: #fffbeb;
+  --primary: #6366f1;
+  --primary-light: #eef2ff;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.04);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ── HEADER ─────────────────────────────────── */
+.header {
+  background: #0f172a;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+  .header-logo-img {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+  }
+  .header-logo-UNUSED-old {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: #fff;
+}
+.month-select {
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+.month-select option { background: #1e293b; color: #fff; }
+
+/* ── MAIN ────────────────────────────────────── */
+.main { padding: 20px 28px 40px; max-width: 1400px; margin: 0 auto; }
+
+/* ── REVENUE BLOCK ───────────────────────────── */
+.revenue-block {
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  padding: 24px 28px;
+  margin-bottom: 16px;
+}
+.rev-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.rev-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.rev-fact {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--text-1);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.rev-fact span { font-size: 18px; font-weight: 500; color: var(--text-3); margin-left: 4px; }
+.rev-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+.badge-closed { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.badge-open { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+.rev-pct-big {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Progress bar */
+.progress-wrap {
+  position: relative;
+  background: #e2e8f0;
+  border-radius: 8px;
+  height: 18px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width .6s ease;
+  position: relative;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: rgba(255,255,255,.5);
+}
+.progress-pct-label {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(255,255,255,.9);
+  mix-blend-mode: luminosity;
+  pointer-events: none;
+}
+.rev-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.rev-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.rev-meta-label { font-size: 10px; color: var(--text-3); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.rev-meta-val { font-size: 15px; font-weight: 700; color: var(--text-1); }
+.rev-meta-val.red { color: var(--red); }
+.rev-meta-val.green { color: var(--green); }
+.rev-meta-val.amber { color: var(--amber); }
+
+/* ── KPI CARDS ───────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.kpi-card {
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+}
+.kpi-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.kpi-fact { font-size: 22px; font-weight: 800; color: var(--text-1); line-height: 1; margin-bottom: 6px; }
+.kpi-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.kpi-plan { font-size: 11px; color: var(--text-3); }
+.kpi-delta {
+  font-size: 11px; font-weight: 700;
+  padding: 1px 7px; border-radius: 10px;
+}
+.delta-pos { background: var(--green-light); color: var(--green); }
+.delta-neg { background: var(--red-light); color: var(--red); }
+.delta-neu { background: var(--amber-light); color: var(--amber); }
+.kpi-mini-bar {
+  width: 100%;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.kpi-mini-fill { height: 100%; border-radius: 2px; }
+
+/* ── REMAINING BLOCK (current month) ────────── */
+.remaining-block {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  border-radius: 14px;
+  padding: 20px 28px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.remaining-block.hidden { display: none; }
+.remaining-item { flex: 1; min-width: 140px; }
+.remaining-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.remaining-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+}
+.remaining-sub { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 2px; }
+.remaining-divider { width: 1px; height: 50px; background: rgba(255,255,255,.15); }
+
+/* ── CHARTS GRID ─────────────────────────────── */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.chart-card {
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+}
+.chart-card h3 {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+.chart-wrap { position: relative; height: 165px; }
+
+/* ── EVENTS TABLE ────────────────────────────── */
+.table-block {
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.table-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.table-header h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.table-legend {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.legend-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.events-table { width: 100%; border-collapse: collapse; }
+.events-table th {
+  background: var(--surface-2);
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.events-table th.r { text-align: right; }
+.events-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.events-table td.r { text-align: right; }
+.events-table tr:last-child td { border-bottom: none; }
+.events-table tr.row-total td {
+  font-weight: 700;
+  background: var(--surface-2);
+  border-top: 2px solid var(--border);
+  font-size: 12px;
+}
+.events-table tr.row-over td { background: #f0fdf4; }
+.events-table tr.row-under td { background: #fef2f2; }
+.events-table tr.row-empty td { background: #f8fafc; color: var(--text-3); }
+.events-table tr.row-over:hover td { background: #dcfce7; }
+.events-table tr.row-under:hover td { background: #fee2e2; }
+.events-table tr.row-empty:hover td { background: #f1f5f9; }
+
+/* Party name truncation */
+.party-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+
+/* Mini progress bar in table */
+.mini-prog { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.mini-bar { width: 48px; height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+.mini-fill { height: 100%; border-radius: 3px; }
+.pct-text { font-size: 11px; font-weight: 700; min-width: 40px; text-align: right; }
+
+/* FR cell */
+.fr-pos { color: var(--green); font-weight: 600; }
+.fr-neg { color: var(--red); font-weight: 600; }
+.fr-na { color: var(--text-3); }
+
+/* Dot indicator */
+.event-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* ── БУДНИ / ВЫХОДНЫЕ ────────────────────── */
+.wkday-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.wkday-card {
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wkday-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.wkday-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wkday-metric-label {
+  font-size: 11px;
+  color: var(--text-3);
+  width: 60px;
+  flex-shrink: 0;
+}
+.wkday-fact {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-1);
+  min-width: 80px;
+}
+.wkday-plan {
+  font-size: 11px;
+  color: var(--text-3);
+  flex: 1;
+}
+.wkday-pct {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.wkday-prog { flex: 1; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
+.wkday-prog-fill { height: 100%; border-radius: 2px; }
+
+/* Table filters */
+.tbl-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tbl-filter {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 11px;
+  color: var(--text-1);
+  cursor: pointer;
+  outline: none;
+}
+.tbl-filter:focus { border-color: var(--primary); }
+input[type=number].tbl-filter { -moz-appearance: textfield; }
+input[type=number].tbl-filter::-webkit-outer-spin-button,
+input[type=number].tbl-filter::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .remaining-block { gap: 20px; }
+}
+
+.tab-nav{display:flex;gap:4px;}
+.tab-btn{padding:5px 16px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.5px;transition:.15s;}
+.tab-btn.active{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4);}
+.tab-btn:hover:not(.active){background:rgba(255,255,255,.08);}
+.t2-wrap{display:flex;flex-direction:column;gap:20px;}
+.t2-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.t2-sum-card{background:var(--surface);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.t2-sum-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;}
+.t2-sum-val{font-size:22px;font-weight:700;color:var(--text-1);}
+.t2-sum-sub{font-size:12px;color:var(--text-3);margin-top:3px;}
+.t2-m-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font-size:12px;font-weight:600;cursor:pointer;transition:.15s;}
+.t2-m-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.t2-m-btn:hover:not(.active){border-color:var(--primary);color:var(--primary);}
+.t2-chart-card{background:var(--surface);border-radius:12px;padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.t2-chart-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:16px;}
+.t2-chart-wrap{position:relative;height:300px;}
+.t2-drill{background:var(--surface);border-radius:12px;padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.t2-drill-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
+.t2-drill-title{font-size:14px;font-weight:700;color:var(--text-1);}
+.t2-pt{width:100%;border-collapse:collapse;font-size:13px;}
+.t2-pt th{text-align:right;padding:8px 10px;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border);}
+.t2-pt th:first-child{text-align:left;}
+.t2-pt td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;}
+.t2-pt td:first-child{text-align:left;font-weight:600;color:var(--text-1);}
+.t2-pt tr:last-child td{border-bottom:none;}
+.t2-pt .rg{background:#f0fdf4;}.t2-pt .rf{background:#fef2f2;}
+.t2-pt .ro25{background:var(--surface-2);}.t2-pt .ro26{background:#eef2ff;}
+.t2-pt .rtot{background:var(--surface-2);font-weight:700;border-top:2px solid var(--border);}
+.t2-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;}
+.t2-b25{background:#e2e8f0;color:#475569;}.t2-b26{background:#eef2ff;color:#6366f1;}
+@media(max-width:700px){.t2-summary{grid-template-columns:1fr 1fr;}}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="https://static.tildacdn.com/tild6361-6666-4539-a335-643031663030/logo.svg" alt="BAZZAR" class="header-logo-img" onerror="this.src='logo.png'">
+  <div class="tab-nav"><button class="tab-btn active" id="tab-btn-1" onclick="switchTab(1)">Месяц</button><button class="tab-btn" id="tab-btn-2" onclick="switchTab(2)">Год к году</button></div>
+  <div id="tab1-selectors" style="display:flex;gap:8px;align-items:center">
+    <select class="month-select" id="year-select"></select>
+    <select class="month-select" id="month-select"></select>
+  </div>
+</div>
+
+<div class="main" id="main-content"></div>
+
+<script>
+
+let ALL_DATA = []; // populated from Google Sheets on load
+
+function n(v, dec=0) {
+  if (v == null || isNaN(v)) return '—';
+  return v.toLocaleString('ru-RU', {maximumFractionDigits: dec});
+}
+function nm(v) { // millions
+  if (v == null) return '—';
+  if (Math.abs(v) >= 1000000) return (v/1000000).toFixed(2) + ' M';
+  if (Math.abs(v) >= 1000) return (v/1000).toFixed(0) + 'К';
+  return n(v);
+}
+function pct(fact, plan) {
+  if (!fact || !plan) return null;
+  return fact / plan * 100;
+}
+function clampPct(p) { return Math.min(p, 100); }
+
+function deltaTag(d) {
+  if (d == null) return '<span class="fr-na">—</span>';
+  const cls = d >= 0 ? 'fr-pos' : 'fr-neg';
+  const arrow = d >= 0 ? '▲' : '▼';
+  return `<span class="${cls}">${d >= 0 ? '+' : ''}${n(d)} ${arrow}</span>`;
+}
+
+function progColor(p) {
+  if (p == null) return '#e2e8f0';
+  if (p >= 100) return '#16a34a';
+  if (p >= 80) return '#d97706';
+  return '#dc2626';
+}
+
+function deltaClass(fact, plan) {
+  if (fact == null || plan == null) return 'delta-neu';
+  return fact >= plan ? 'delta-pos' : 'delta-neg';
+}
+
+// ══════════════════════════════════════════════
+//  MONTHS SETUP
+// ══════════════════════════════════════════════
+// Build available year/month combos from ALL_DATA
+let allMonths = [];
+let allYears  = [];
+// Keep legacy "months" for any remaining references
+let months = [];
+let currentMonth = allMonths[0]; // e.g. "2026-07"
+// Month names array (1-indexed: M[1]='Январь' ... M[12]='Декабрь')
+const M = ['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+let chartInstances = {};
+let filterParty = 'all';
+let filterDow = 'all';
+let filterWk = 'all'; // 'all' | 'wkend' | 'wkday'
+let filterDateFrom = null; // day-of-month number or null
+let filterDateTo = null;
+
+
+// ══════════════════════════════════════════════
+//  TAB + TAB-2 STATE
+// ══════════════════════════════════════════════
+let currentTab=1, t2Metric='rev', t2Wk='all', t2DayFrom=null, t2DayTo=null,
+    t2Month=null, t2ChartInst=null, t2DrillMetric='rev',
+    t2UseCustom=false, t2DrillMode='party',
+    t2CA_from='', t2CA_to='',   // Period A: any date range
+    t2CB_from='', t2CB_to='';  // Period B: any date range
+
+// Tab 2 does NOT include ФР (it's a forecast metric for current month only)
+const T2_METRICS = {
+  rev:       {label:'Выручка',    suffix:' ₽',  fmt:nm, isAvg:false},
+  guests:    {label:'Гости',      suffix:' чел', fmt:n,  isAvg:false},
+  check:     {label:'Ср чек',     suffix:' ₽',  fmt:n,  isAvg:true},
+  check_bar: {label:'Ср чек бар', suffix:' ₽',  fmt:n,  isAvg:true}
+};
+
+function metricVal(evts, metric) {
+  const wf = evts.filter(r => r.rev_fact != null);
+  if (!wf.length) return null;
+  if (metric === 'rev')    return wf.reduce((a,r) => a + (r.rev_fact||0), 0);
+  if (metric === 'guests') return wf.reduce((a,r) => a + (r.guests_fact||0), 0);
+  if (metric === 'check') {
+    const g = wf.reduce((a,r) => a + (r.guests_fact||0), 0);
+    return g ? wf.reduce((a,r) => a + (r.check_fact||0)*(r.guests_fact||0), 0)/g : null;
+  }
+  if (metric === 'check_bar') {
+    const d = wf.filter(r => r.check_bar_fact != null && r.guests_fact);
+    const g = d.reduce((a,r) => a + r.guests_fact, 0);
+    return g ? d.reduce((a,r) => a + r.check_bar_fact*r.guests_fact, 0)/g : null;
+  }
+  if (metric === 'fr') return wf.reduce((a,r) => a + (r.rev_fact||0) - (r.cos||0), 0);
+  return null;
+}
+
+function filterT2(evts) {
+  return evts.filter(r => {
+    const day = parseInt(r.date.slice(8,10), 10);
+    return (t2Wk === 'all' || (t2Wk === 'wkend' ? WEEKEND.includes(r.dow) : !WEEKEND.includes(r.dow))) &&
+      (t2DayFrom == null || day >= t2DayFrom) &&
+      (t2DayTo == null || day <= t2DayTo);
+  });
+}
+
+function switchTab(n) {
+  currentTab = n;
+  document.getElementById('tab-btn-1').classList.toggle('active', n===1);
+  document.getElementById('tab-btn-2').classList.toggle('active', n===2);
+  document.getElementById('tab1-selectors').style.display = n===1 ? 'flex' : 'none';
+  if (n===1) renderAll(); else renderTab2();
+}
+
+function t2SetMetric(m)      { t2Metric = m;      renderTab2(); }
+function t2SetDrillMode(m) { t2DrillMode=m; renderTab2(); }
+function t2SetDrillMetric(m) { t2DrillMetric = m; renderTab2(); }
+
+// ══════════════════════════════════════════════
+//  RENDER TAB 2
+// ══════════════════════════════════════════════
+function renderTab2() {
+  const MN      = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  const MN_FULL = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const mc = T2_METRICS[t2Metric];
+  const sg = v => v >= 0 ? '+' : '';
+  const pc = p => p >= 10 ? 'var(--green)' : p <= -10 ? 'var(--red)' : 'var(--amber)';
+  const fmtV = (v, met) => {
+    const m = T2_METRICS[met||t2Metric];
+    return v == null ? '—' : (m.isAvg ? n(Math.round(v)) : m.fmt(v)) + m.suffix;
+  };
+
+  // ── Summary cards (Jan-Jun both years, current metric) ────────
+  const CMP = [1,2,3,4,5,6];
+  const s25 = metricVal(filterT2(ALL_DATA.filter(r => r.year===2025 && CMP.includes(r.month))), t2Metric);
+  const s26 = metricVal(filterT2(ALL_DATA.filter(r => r.year===2026 && CMP.includes(r.month))), t2Metric);
+  const dAbs = (s25!=null && s26!=null) ? s26-s25 : null;
+  const dPct = (s25 && dAbs!=null) ? dAbs/s25*100 : null;
+
+  const sumHtml = `<div class="t2-summary">
+    <div class="t2-sum-card"><div class="t2-sum-label">2025 (янв–июн)</div><div class="t2-sum-val">${fmtV(s25)}</div><div class="t2-sum-sub">Сопоставимый период</div></div>
+    <div class="t2-sum-card"><div class="t2-sum-label">2026 (янв–июн)</div><div class="t2-sum-val">${fmtV(s26)}</div><div class="t2-sum-sub">Текущий год</div></div>
+    <div class="t2-sum-card"><div class="t2-sum-label">Δ абсолютный</div>
+      <div class="t2-sum-val" style="color:${dAbs==null?'var(--text-3)':dAbs>=0?'var(--green)':'var(--red)'}">
+        ${dAbs==null?'—':sg(dAbs)+(mc.isAvg?n(Math.round(dAbs)):mc.fmt(dAbs))+mc.suffix}</div>
+      <div class="t2-sum-sub">год к году</div></div>
+    <div class="t2-sum-card"><div class="t2-sum-label">Рост %</div>
+      <div class="t2-sum-val" style="color:${dPct==null?'var(--text-3)':pc(dPct)}">
+        ${dPct==null?'—':sg(dPct)+dPct.toFixed(1)+'%'}</div>
+      <div class="t2-sum-sub">2025 → 2026</div></div>
+  </div>`;
+
+  // ── Chart ──────────────────────────────────────────────────────
+  const d25 = MN.map((_,i) => metricVal(filterT2(ALL_DATA.filter(r => r.year===2025 && r.month===i+1)), t2Metric));
+  const d26 = MN.map((_,i) => metricVal(filterT2(ALL_DATA.filter(r => r.year===2026 && r.month===i+1)), t2Metric));
+  const mBtns = Object.keys(T2_METRICS).map(k =>
+    `<button class="t2-m-btn${t2Metric===k?' active':''}" onclick="t2SetMetric('${k}')">${T2_METRICS[k].label}</button>`
+  ).join('');
+
+  const chartHtml = `<div class="t2-chart-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${mBtns}</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <select class="tbl-filter" id="t2-wk">
+          <option value="all"${t2Wk==='all'?' selected':''}>Все дни</option>
+          <option value="wkend"${t2Wk==='wkend'?' selected':''}>Выходные (пт, сб)</option>
+          <option value="wkday"${t2Wk==='wkday'?' selected':''}>Будни</option>
+        </select>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3)">
+          <span>с</span><input type="number" id="t2-df" class="tbl-filter" min="1" max="31" placeholder="1" value="${t2DayFrom??''}" style="width:52px;text-align:center">
+          <span>по</span><input type="number" id="t2-dt" class="tbl-filter" min="1" max="31" placeholder="31" value="${t2DayTo??''}" style="width:52px;text-align:center">
+        </div>
+      </div>
+    </div>
+    <div class="t2-chart-title">${mc.label} — 2025 vs 2026 по месяцам</div>
+    <div class="t2-chart-wrap"><canvas id="chart-yoy"></canvas></div>
+  </div>`;
+
+  // ── Period comparison table ────────────────────────────────────
+  const mOpts = MN_FULL.map((name,i) => {
+    const has = ALL_DATA.some(r => r.month===i+1);
+    return has ? `<option value="${i+1}"${t2Month===i+1?' selected':''}>${name}</option>` : '';
+  }).join('');
+
+  // Helper: format label for a date range
+  const fmtRangeLabel = (from, to) => {
+    if (!from && !to) return '—';
+    const fd = from ? from.slice(8,10)+'.'+from.slice(5,7)+'.'+from.slice(2,4) : '?';
+    const td2 = to   ? to.slice(8,10)+'.'+to.slice(5,7)+'.'+to.slice(2,4)   : '?';
+    return `${fd} — ${td2}`;
+  };
+
+  // Compute period comparison rows (works for both modes)
+  function buildPeriodRows(evtsA, evtsB, labelA, labelB) {
+    const cmpMetrics = ['rev','guests','check','check_bar'];
+    const mLabels = {rev:'Выручка', guests:'Гости', check:'Ср чек', check_bar:'Ср чек бар'};
+    const rows = cmpMetrics.map(met => {
+      const vA = metricVal(evtsA, met);
+      const vB = metricVal(evtsB, met);
+      const d  = (vA!=null && vB!=null) ? vB-vA : null;
+      const pp = (vA && d!=null) ? d/vA*100 : null;
+      const m  = T2_METRICS[met];
+      const fmt = v => v==null?'—':(m.isAvg?n(Math.round(v)):m.fmt(v))+m.suffix;
+      const dStr = d!=null?`<span style="color:${d>=0?'var(--green)':'var(--red)'};font-weight:600">${sg(d)}${m.isAvg?n(Math.round(d)):m.fmt(d)}${m.suffix}</span>`:'—';
+      const pStr = pp!=null?`<span style="color:${pc(pp)};font-weight:600">${sg(pp)}${pp.toFixed(1)}%</span>`:'—';
+      return `<tr>
+        <td style="font-weight:600;color:var(--text-1)">${mLabels[met]}</td>
+        <td>${fmt(vA)}</td><td>${fmt(vB)}</td>
+        <td>${dStr}</td><td>${pStr}</td>
+      </tr>`;
+    }).join('');
+    return `<div style="overflow-x:auto"><table class="t2-pt">
+      <thead><tr>
+        <th>Показатель</th>
+        <th><span class="t2-badge t2-b25">А</span> ${labelA}</th>
+        <th><span class="t2-badge t2-b26">Б</span> ${labelB}</th>
+        <th>Δ (Б − А)</th><th>%</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  }
+
+  // Mode toggle UI
+  const modeToggle = `
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="t2-m-btn${!t2UseCustom?' active':''}" onclick="t2PeriodMode(false)">По месяцу</button>
+      <button class="t2-m-btn${t2UseCustom?' active':''}"  onclick="t2PeriodMode(true)">Произвольный период</button>
+    </div>`;
+
+  let periodControls, periodBody;
+
+  if (!t2UseCustom) {
+    // ─ Month mode ─────────────────────────────────────────────────
+    periodControls = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <select class="tbl-filter" id="t2-ms-period">
+        <option value="">— выберите месяц —</option>${mOpts}
+      </select>
+      <span style="font-size:11px;color:var(--text-3)">Фильтры будни/выходные и дни применяются</span>
+    </div>`;
+
+    if (!t2Month) {
+      periodBody = `<div style="color:var(--text-3);font-size:13px;padding:16px 0">Выберите месяц — увидите все показатели за период</div>`;
+    } else {
+      const eA = filterT2(ALL_DATA.filter(r => r.year===2025 && r.month===t2Month));
+      const eB = filterT2(ALL_DATA.filter(r => r.year===2026 && r.month===t2Month));
+      const rangeLabel = (t2DayFrom||t2DayTo) ? `, ${t2DayFrom??'1'}–${t2DayTo??'31'} числа` : '';
+      periodBody = buildPeriodRows(eA, eB,
+        `2025, ${MN_FULL[t2Month-1]}${rangeLabel}`,
+        `2026, ${MN_FULL[t2Month-1]}${rangeLabel}`);
+    }
+  } else {
+    // ─ Custom date range mode ──────────────────────────────────────
+    periodControls = `
+      <div style="display:grid;grid-template-columns:auto 1fr auto 1fr;gap:8px;align-items:center;max-width:560px">
+        <span style="font-size:12px;font-weight:600;color:var(--text-2)">Период А:</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="date" id="t2-ca-from" class="tbl-filter" value="${t2CA_from}" style="flex:1">
+          <span style="color:var(--text-3);font-size:11px">—</span>
+          <input type="date" id="t2-ca-to"   class="tbl-filter" value="${t2CA_to}"   style="flex:1">
+        </div>
+        <span style="font-size:12px;font-weight:600;color:var(--text-2)">Период Б:</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="date" id="t2-cb-from" class="tbl-filter" value="${t2CB_from}" style="flex:1">
+          <span style="color:var(--text-3);font-size:11px">—</span>
+          <input type="date" id="t2-cb-to"   class="tbl-filter" value="${t2CB_to}"   style="flex:1">
+        </div>
+      </div>`;
+
+    const canCompare = t2CA_from && t2CA_to && t2CB_from && t2CB_to;
+    if (!canCompare) {
+      periodBody = `<div style="color:var(--text-3);font-size:13px;padding:16px 0">Укажите даты для обоих периодов</div>`;
+    } else {
+      const eA = ALL_DATA.filter(r => r.date >= t2CA_from && r.date <= t2CA_to);
+      const eB = ALL_DATA.filter(r => r.date >= t2CB_from && r.date <= t2CB_to);
+      periodBody = buildPeriodRows(eA, eB, fmtRangeLabel(t2CA_from,t2CA_to), fmtRangeLabel(t2CB_from,t2CB_to));
+    }
+  }
+
+  const periodHtml = `<div class="t2-drill">
+    <div style="margin-bottom:4px">
+      <div class="t2-drill-title" style="margin-bottom:12px">Сравнение периода — все показатели</div>
+      ${modeToggle}
+      ${periodControls}
+    </div>
+    <div style="margin-top:16px">${periodBody}</div>
+  </div>`;
+
+  // ── Party drill-down with own metric switcher ──────────────────
+  // ── Drill-down: party OR day-of-week ──────────────────────────
+  const drillMBtns = Object.keys(T2_METRICS).map(k =>
+    `<button class="t2-m-btn${t2DrillMetric===k?' active':''}" onclick="t2SetDrillMetric('${k}')">${T2_METRICS[k].label}</button>`
+  ).join('');
+
+  const drillModeBtns = `<div style="display:flex;gap:6px;margin-bottom:12px">
+    <button class="t2-m-btn${t2DrillMode==='party'?' active':''}" onclick="t2SetDrillMode('party')">По вечеринкам</button>
+    <button class="t2-m-btn${t2DrillMode==='dow'?' active':''}" onclick="t2SetDrillMode('dow')">По дням недели</button>
+  </div>`;
+
+  const drillTitle = t2DrillMode === 'dow' ? 'Детализация по дням недели' : 'Детализация по вечеринкам';
+  const drillPlaceholder = t2DrillMode === 'dow'
+    ? 'Выберите месяц для сравнения по дням недели'
+    : 'Выберите месяц для сравнения по вечеринкам';
+
+  let drillBody = `<div style="color:var(--text-3);font-size:13px;padding:16px 0">${drillPlaceholder}</div>`;
+
+  if (t2Month) {
+    const dmc = T2_METRICS[t2DrillMetric];
+    const fmtD = v => v==null?'—':(dmc.isAvg?n(Math.round(v)):dmc.fmt(v))+dmc.suffix;
+    const e25 = filterT2(ALL_DATA.filter(r => r.year===2025 && r.month===t2Month));
+    const e26 = filterT2(ALL_DATA.filter(r => r.year===2026 && r.month===t2Month));
+
+    if (t2DrillMode === 'dow') {
+      // Group into пт / сб / Будни
+      const DOW_GROUPS = [
+        { label:'Пятница', filter: r => r.dow==='пт' },
+        { label:'Суббота', filter: r => r.dow==='сб' },
+        { label:'Будни',   filter: r => !['пт','сб'].includes(r.dow) },
+      ];
+      const rows = DOW_GROUPS.map(g => {
+        const v25 = metricVal(e25.filter(g.filter), t2DrillMetric);
+        const v26 = metricVal(e26.filter(g.filter), t2DrillMetric);
+        const d   = (v25!=null && v26!=null) ? v26-v25 : null;
+        const pp  = (v25 && d!=null) ? d/v25*100 : null;
+        const dStr = d!=null?`<span style="color:${d>=0?'var(--green)':'var(--red)'};font-weight:600">${sg(d)}${dmc.isAvg?n(Math.round(d)):dmc.fmt(d)}${dmc.suffix}</span>`:'—';
+        const pStr = pp!=null?`<span style="color:${pc(pp)};font-weight:600">${sg(pp)}${pp.toFixed(1)}%</span>`:'—';
+        let cls = '';
+        if (v25==null&&v26!=null) cls='ro26'; else if (v26==null&&v25!=null) cls='ro25';
+        else if (pp!=null&&pp>=5) cls='rg'; else if (pp!=null&&pp<=-5) cls='rf';
+        return `<tr class="${cls}"><td><strong>${g.label}</strong></td>
+          <td>${v25!=null?fmtD(v25):'<span style="color:var(--text-3)">—</span>'}</td>
+          <td>${v26!=null?fmtD(v26):'<span style="color:var(--text-3)">—</span>'}</td>
+          <td>${dStr}</td><td>${pStr}</td></tr>`;
+      }).join('');
+
+      const tot25=metricVal(e25,t2DrillMetric), tot26=metricVal(e26,t2DrillMetric);
+      const totD=(tot25!=null&&tot26!=null)?tot26-tot25:null;
+      const totP=(tot25&&totD!=null)?totD/tot25*100:null;
+      const tdStr=totD!=null?`<span style="color:${totD>=0?'var(--green)':'var(--red)'};font-weight:700">${sg(totD)}${dmc.isAvg?n(Math.round(totD)):dmc.fmt(totD)}${dmc.suffix}</span>`:'—';
+      const tpStr=totP!=null?`<span style="color:${pc(totP)};font-weight:700">${sg(totP)}${totP.toFixed(1)}%</span>`:'—';
+      drillBody = `<div style="overflow-x:auto"><table class="t2-pt">
+        <thead><tr><th>День</th>
+          <th><span class="t2-badge t2-b25">2025</span> ${dmc.label}</th>
+          <th><span class="t2-badge t2-b26">2026</span> ${dmc.label}</th>
+          <th>Δ абс</th><th>Δ %</th>
+        </tr></thead>
+        <tbody>${rows}
+          <tr class="rtot"><td>ИТОГО</td><td>${fmtD(tot25)}</td><td>${fmtD(tot26)}</td><td>${tdStr}</td><td>${tpStr}</td></tr>
+        </tbody></table></div>`;
+
+    } else {
+      // Party mode
+      const bp25={}, bp26={};
+      e25.forEach(r => { const k=r.party.trim(); (bp25[k]??=[]).push(r); });
+      e26.forEach(r => { const k=r.party.trim(); (bp26[k]??=[]).push(r); });
+      const allP = [...new Set([...Object.keys(bp25),...Object.keys(bp26)])].sort();
+
+      const rows = allP.map(p => {
+        const v25 = metricVal(bp25[p]||[], t2DrillMetric);
+        const v26 = metricVal(bp26[p]||[], t2DrillMetric);
+        const d = (v25!=null && v26!=null) ? v26-v25 : null;
+        const pp = (v25 && d!=null) ? d/v25*100 : null;
+        let cls = '';
+        if (v25==null) cls='ro26'; else if (v26==null) cls='ro25';
+        else if (pp>=5) cls='rg'; else if (pp<=-5) cls='rf';
+        const dStr = d!=null?`<span style="color:${d>=0?'var(--green)':'var(--red)'};font-weight:600">${sg(d)}${dmc.isAvg?n(Math.round(d)):dmc.fmt(d)}${dmc.suffix}</span>`:'—';
+        const pStr = pp!=null?`<span style="color:${pc(pp)};font-weight:600">${sg(pp)}${pp.toFixed(1)}%</span>`:(v25==null?'<span class="t2-badge t2-b26">NEW</span>':'<span class="t2-badge t2-b25">ТОЛЬКО 2025</span>');
+        return `<tr class="${cls}"><td>${p}</td>
+          <td>${v25!=null?fmtD(v25):'<span style="color:var(--text-3)">—</span>'}</td>
+          <td>${v26!=null?fmtD(v26):'<span style="color:var(--text-3)">—</span>'}</td>
+          <td>${dStr}</td><td>${pStr}</td></tr>`;
+      }).sort().join('');
+
+      const tot25=metricVal(e25,t2DrillMetric), tot26=metricVal(e26,t2DrillMetric);
+      const totD=(tot25!=null&&tot26!=null)?tot26-tot25:null;
+      const totP=(tot25&&totD!=null)?totD/tot25*100:null;
+      const tdStr=totD!=null?`<span style="color:${totD>=0?'var(--green)':'var(--red)'};font-weight:700">${sg(totD)}${dmc.isAvg?n(Math.round(totD)):dmc.fmt(totD)}${dmc.suffix}</span>`:'—';
+      const tpStr=totP!=null?`<span style="color:${pc(totP)};font-weight:700">${sg(totP)}${totP.toFixed(1)}%</span>`:'—';
+      drillBody = `<div style="overflow-x:auto"><table class="t2-pt">
+        <thead><tr><th>Вечеринка</th>
+          <th><span class="t2-badge t2-b25">2025</span> ${dmc.label}</th>
+          <th><span class="t2-badge t2-b26">2026</span> ${dmc.label}</th>
+          <th>Δ</th><th>%</th>
+        </tr></thead>
+        <tbody>${rows}
+          <tr class="rtot"><td>ИТОГО</td><td>${fmtD(tot25)}</td><td>${fmtD(tot26)}</td><td>${tdStr}</td><td>${tpStr}</td></tr>
+        </tbody></table></div>`;
+    }
+  }
+
+  const drillHtml = `<div class="t2-drill">
+    <div class="t2-drill-header">
+      <div class="t2-drill-title">${drillTitle}</div>
+      <select class="tbl-filter" id="t2-ms-drill">
+        <option value="">— выберите месяц —</option>${mOpts}
+      </select>
+    </div>
+    ${drillModeBtns}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${drillMBtns}</div>
+    ${drillBody}
+  </div>`;
+
+  // ── Render
+
+  // ── Render ─────────────────────────────────────────────────────
+  document.getElementById('main-content').innerHTML =
+    `<div class="main t2-wrap">${sumHtml}${chartHtml}${periodHtml}${drillHtml}</div>`;
+
+  // Chart
+  if (t2ChartInst) { t2ChartInst.destroy(); t2ChartInst = null; }
+  const ctx = document.getElementById('chart-yoy');
+  if (ctx) {
+    t2ChartInst = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: MN, datasets: [
+        {label:'2025', data:d25.map(v=>v!=null?Math.round(v):null), backgroundColor:'rgba(148,163,184,0.55)', borderColor:'#94a3b8', borderWidth:1, borderRadius:4, order:2},
+        {label:'2026', data:d26.map(v=>v!=null?Math.round(v):null), backgroundColor:'rgba(99,102,241,0.8)',  borderColor:'#6366f1', borderWidth:1, borderRadius:4, order:1}
+      ]},
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins: {
+          legend: {labels:{color:'#475569',font:{size:12}}},
+          tooltip: {callbacks:{label:c=>{const v=c.parsed.y;return v==null?null:c.dataset.label+': '+(mc.isAvg?n(v):nm(v))+mc.suffix;}}}
+        },
+        scales: {
+          x:{grid:{display:false},ticks:{color:'#94a3b8',font:{size:11}}},
+          y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#94a3b8',font:{size:11},callback:v=>nm(v)+mc.suffix}}
+        }
+      }
+    });
+  }
+
+  // Handlers
+  const sync = () => {
+    t2Wk = document.getElementById('t2-wk')?.value || 'all';
+    t2DayFrom = document.getElementById('t2-df')?.value ? parseInt(document.getElementById('t2-df').value,10) : null;
+    t2DayTo   = document.getElementById('t2-dt')?.value ? parseInt(document.getElementById('t2-dt').value,10) : null;
+    renderTab2();
+  };
+  document.getElementById('t2-wk')?.addEventListener('change', sync);
+  document.getElementById('t2-df')?.addEventListener('change', sync);
+  document.getElementById('t2-dt')?.addEventListener('change', sync);
+  document.getElementById('t2-ms-period')?.addEventListener('change', e => {
+    t2Month = e.target.value ? parseInt(e.target.value,10) : null;
+    const drillSel = document.getElementById('t2-ms-drill');
+    if (drillSel) drillSel.value = e.target.value;
+    renderTab2();
+  });
+  document.getElementById('t2-ms-drill')?.addEventListener('change', e => {
+    t2Month = e.target.value ? parseInt(e.target.value,10) : null;
+    const pSel = document.getElementById('t2-ms-period');
+    if (pSel) pSel.value = e.target.value;
+    renderTab2();
+  });
+  // Custom period date handlers
+  const syncCustom = () => {
+    t2CA_from = document.getElementById('t2-ca-from')?.value || '';
+    t2CA_to   = document.getElementById('t2-ca-to')?.value   || '';
+    t2CB_from = document.getElementById('t2-cb-from')?.value || '';
+    t2CB_to   = document.getElementById('t2-cb-to')?.value   || '';
+    renderTab2();
+  };
+  document.getElementById('t2-ca-from')?.addEventListener('change', syncCustom);
+  document.getElementById('t2-ca-to')?.addEventListener('change',   syncCustom);
+  document.getElementById('t2-cb-from')?.addEventListener('change', syncCustom);
+  document.getElementById('t2-cb-to')?.addEventListener('change',   syncCustom);
+}
+
+function t2PeriodMode(custom) { t2UseCustom = custom; renderTab2(); }
+
+function populateMonthSelect(year) {
+  const sel = document.getElementById('month-select');
+  sel.innerHTML = '';
+  const yearMonths = allMonths.filter(ym => ym.startsWith(String(year)));
+  yearMonths.forEach(ym => {
+    const [,m] = ym.split('-');
+    const opt = document.createElement('option');
+    opt.value = ym;
+    opt.textContent = M[+m];
+    sel.appendChild(opt);
+  });
+  // Pick same month number if available, else first
+  const curMon = currentMonth.slice(5);
+  const match = yearMonths.find(ym => ym.slice(5) === curMon);
+  sel.value = match || yearMonths[0] || '';
+  currentMonth = sel.value;
+}
+
+function initTabs() {
+  // Year selector
+  const ySel = document.getElementById('year-select');
+  allYears.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    ySel.appendChild(opt);
+  });
+  ySel.value = currentMonth.slice(0,4);
+  ySel.onchange = () => {
+    populateMonthSelect(+ySel.value);
+    filterParty = 'all'; filterDow = 'all'; filterWk = 'all'; filterDateFrom = null; filterDateTo = null;
+    renderAll();
+  };
+
+  // Month selector (initial population)
+  populateMonthSelect(+ySel.value);
+  document.getElementById('month-select').onchange = (e) => {
+    currentMonth = e.target.value;
+    filterParty = 'all'; filterDow = 'all'; filterWk = 'all'; filterDateFrom = null; filterDateTo = null;
+    renderAll();
+  };
+}
+
+function updateTabs() {
+  const [y] = currentMonth.split('-');
+  const ySel = document.getElementById('year-select');
+  if (ySel) ySel.value = y;
+  document.getElementById('month-select').value = currentMonth;
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function renderAll() {
+  updateTabs();
+  const events = ALL_DATA.filter(r => r.date.startsWith(currentMonth))
+                     .sort((a, b) => a.date.localeCompare(b.date));
+  const [year, mon] = currentMonth.split('-');
+  const isCurrent = currentMonth === allMonths[0]; // most recent month = in progress
+
+  // Totals
+  const withFact = events.filter(r => r.rev_fact != null);
+  const withoutFact = events.filter(r => r.rev_fact == null);
+  const tot_rev_plan = events.reduce((a,r) => a + (r.rev_plan||0), 0);
+  const tot_rev_fact = withFact.reduce((a,r) => a + r.rev_fact, 0);
+  const tot_guests_plan = events.reduce((a,r) => a + (r.guests_plan||0), 0);
+  const tot_guests_fact = withFact.reduce((a,r) => a + (r.guests_fact||0), 0);
+  const tot_fr = withFact.reduce((a,r) => a + ((r.rev_fact||0) - (r.cos||0)), 0);
+  const tot_rev_bar = withFact.reduce((a,r) => a + (r.rev_bar||0), 0);
+  // Взвешенное среднее ср чека бара (работает и без rev_bar)
+  const bar_with_data = withFact.filter(r => r.check_bar_fact != null && r.guests_fact);
+  const check_bar_fact_weighted = bar_with_data.length
+    ? bar_with_data.reduce((a,r) => a + r.check_bar_fact * r.guests_fact, 0) / bar_with_data.reduce((a,r) => a + r.guests_fact, 0)
+    : null;
+  const check_fact_total = tot_guests_fact ? tot_rev_fact / tot_guests_fact : null;
+  const check_plan_avg = events.filter(r=>r.check_plan).reduce((a,r)=>a+r.check_plan,0) / events.filter(r=>r.check_plan).length;
+  const check_bar_fact_total = check_bar_fact_weighted;
+  const bar_plan_with_data = events.filter(r => r.check_bar_plan != null && r.guests_plan);
+  const check_bar_plan_avg = bar_plan_with_data.length
+    ? bar_plan_with_data.reduce((a,r) => a + r.check_bar_plan * r.guests_plan, 0) / bar_plan_with_data.reduce((a,r) => a + r.guests_plan, 0)
+    : null;
+  const rev_pct = pct(tot_rev_fact, tot_rev_plan);
+  const guests_pct = pct(tot_guests_fact, tot_guests_plan);
+
+  // Remaining (current month)
+  const remaining_rev = tot_rev_plan - tot_rev_fact;
+  const remaining_events = withoutFact.length;
+  const needed_per_event = remaining_events > 0 ? remaining_rev / remaining_events : 0;
+  const avg_fr_per_event = withFact.length ? tot_fr / withFact.length : 0;
+
+  let html = '';
+
+  // ── REVENUE BLOCK ──────────────────────────
+  const pctVal = rev_pct != null ? rev_pct.toFixed(1) : '—';
+  const pctColor = progColor(rev_pct);
+  const diff = tot_rev_fact - tot_rev_plan;
+  const diffLabel = diff >= 0 ? `перевыполнение` : `недобор`;
+  const diffClass2 = diff >= 0 ? 'green' : 'red';
+
+  html += `
+  <div class="revenue-block">
+    <div class="rev-top">
+      <div>
+        <div class="rev-title">Выручка месяца</div>
+        <div class="rev-fact">${n(tot_rev_fact)} <span>₽</span></div>
+      </div>
+      <div class="rev-right">
+        <span class="status-badge ${isCurrent ? 'badge-open' : 'badge-closed'}">
+          ${isCurrent ? '● В процессе' : '✓ Закрыт'}
+        </span>
+        <div class="rev-pct-big" style="color:${pctColor}">${pctVal}%</div>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-fill" style="width:${Math.min(rev_pct||0,100)}%;background:${pctColor}">
+        <span class="progress-pct-label">${pctVal}%</span>
+      </div>
+    </div>
+    <div class="rev-meta">
+      <div class="rev-meta-item">
+        <span class="rev-meta-label">план</span>
+        <span class="rev-meta-val">${n(tot_rev_plan)} ₽</span>
+      </div>
+      <div class="rev-meta-item">
+        <span class="rev-meta-label">${diffLabel}</span>
+        <span class="rev-meta-val ${diffClass2}">${diff >= 0 ? '+' : ''}${n(diff)} ₽</span>
+      </div>
+      <div class="rev-meta-item">
+        <span class="rev-meta-label">событий</span>
+        <span class="rev-meta-val">${withFact.length} из ${events.length}</span>
+      </div>
+      <div class="rev-meta-item">
+        <span class="rev-meta-label">ФР итого</span>
+        <span class="rev-meta-val ${tot_fr >= 0 ? 'green' : 'red'}">${tot_fr >= 0 ? '+' : ''}${n(tot_fr)} ₽</span>
+      </div>
+    </div>
+  </div>`;
+
+  // ── KPI CARDS ──────────────────────────────
+  function kpiCard(label, factVal, planVal, unit='', dec=0) {
+    const p = pct(factVal, planVal);
+    const pStr = p != null ? p.toFixed(1) + '%' : '—';
+    const dCls = p == null ? 'delta-neu' : (p >= 100 ? 'delta-pos' : (p >= 80 ? 'delta-neu' : 'delta-neg'));
+    const fillW = p != null ? Math.min(p, 100) : 0;
+    const fillC = progColor(p);
+    const diff2 = (factVal != null && planVal != null) ? factVal - planVal : null;
+    const diffStr = diff2 != null ? (diff2 >= 0 ? '+' : '') + n(diff2, dec) + unit : '';
+    return `
+    <div class="kpi-card">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-fact">${factVal != null ? n(factVal, dec) : '—'}<span style="font-size:13px;font-weight:400;color:var(--text-3)"> ${unit}</span></div>
+      <div class="kpi-row">
+        <span class="kpi-plan">план ${planVal != null ? n(planVal, dec) + unit : '—'}</span>
+        <span class="kpi-delta ${dCls}">${pStr}</span>
+      </div>
+      ${diff2 != null ? `<div style="font-size:11px;color:${diff2>=0?'var(--green)':'var(--red)'};margin-top:2px;font-weight:600">${diffStr}</div>` : ''}
+      <div class="kpi-mini-bar"><div class="kpi-mini-fill" style="width:${fillW}%;background:${fillC}"></div></div>
+    </div>`;
+  }
+
+  html += `<div class="kpi-grid">
+    ${kpiCard('Гости', tot_guests_fact, tot_guests_plan, ' чел')}
+    ${kpiCard('Средний чек', Math.round(check_fact_total), Math.round(check_plan_avg), ' ₽')}
+    ${kpiCard('Ср чек бар', Math.round(check_bar_fact_total), Math.round(check_bar_plan_avg), ' ₽')}
+    <div class="kpi-card">
+      <div class="kpi-label">Финрез (ФР)</div>
+      <div class="kpi-fact" style="font-size:20px;color:${tot_fr>=0?'var(--green)':'var(--red)'}">${tot_fr>=0?'+':''}${nm(tot_fr)}</div>
+      <div class="kpi-row">
+        <span class="kpi-plan">avg на событие</span>
+      </div>
+      <div style="font-size:15px;font-weight:700;margin-top:4px;color:${avg_fr_per_event>=0?'var(--green)':'var(--red)'}">${avg_fr_per_event>=0?'+':''}${n(Math.round(avg_fr_per_event))} ₽</div>
+    </div>
+  </div>`;
+
+  // ── БУДНИ / ВЫХОДНЫЕ ──────────────────────
+  const WEEKEND = ['пт','сб'];
+  const wkend = withFact.filter(r => WEEKEND.includes(r.dow));
+  const wkday = withFact.filter(r => !WEEKEND.includes(r.dow));
+  const wkend_plan = events.filter(r => WEEKEND.includes(r.dow));
+  const wkday_plan = events.filter(r => !WEEKEND.includes(r.dow));
+
+  function wkStats(arr, planArr) {
+    const rf = arr.reduce((a,r) => a + r.rev_fact, 0);
+    const rp = planArr.reduce((a,r) => a + r.rev_plan, 0);
+    const gf = arr.reduce((a,r) => a + (r.guests_fact||0), 0);
+    const gp = planArr.reduce((a,r) => a + (r.guests_plan||0), 0);
+    return { rf, rp, gf, gp,
+      rev_pct: rp ? rf/rp*100 : null,
+      g_pct: gp ? gf/gp*100 : null,
+      count: arr.length, total: planArr.length };
+  }
+
+  const ws = wkStats(wkend, wkend_plan);
+  const wd = wkStats(wkday, wkday_plan);
+
+  function wkCard(title, emoji, s) {
+    const rc = progColor(s.rev_pct), gc = progColor(s.g_pct);
+    return `
+    <div class="wkday-card">
+      <div class="wkday-title">${emoji} ${title} &nbsp;<span style="font-weight:400;color:var(--text-3)">${s.count} из ${s.total} событий</span></div>
+      <div class="wkday-row">
+        <span class="wkday-metric-label">Выручка</span>
+        <span class="wkday-fact">${nm(s.rf)}</span>
+        <span class="wkday-plan">из ${nm(s.rp)}</span>
+        <div class="wkday-prog"><div class="wkday-prog-fill" style="width:${Math.min(s.rev_pct||0,100)}%;background:${rc}"></div></div>
+        <span class="wkday-pct" style="background:${rc}22;color:${rc}">${s.rev_pct != null ? s.rev_pct.toFixed(1)+'%' : '—'}</span>
+      </div>
+      <div class="wkday-row">
+        <span class="wkday-metric-label">Гости</span>
+        <span class="wkday-fact">${n(s.gf)}</span>
+        <span class="wkday-plan">из ${n(s.gp)}</span>
+        <div class="wkday-prog"><div class="wkday-prog-fill" style="width:${Math.min(s.g_pct||0,100)}%;background:${gc}"></div></div>
+        <span class="wkday-pct" style="background:${gc}22;color:${gc}">${s.g_pct != null ? s.g_pct.toFixed(1)+'%' : '—'}</span>
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="wkday-block">
+    ${wkCard('Выходные (пт + сб)', '🎉', ws)}
+    ${wkCard('Будни (пн – чт + вс)', '📅', wd)}
+  </div>`;
+
+  // ── REMAINING BLOCK (current month only) ──
+  if (isCurrent && remaining_events > 0) {
+    html += `
+    <div class="remaining-block">
+      <div class="remaining-item">
+        <div class="remaining-label">Осталось до плана</div>
+        <div class="remaining-val">${n(Math.round(remaining_rev))} ₽</div>
+        <div class="remaining-sub">из ${n(tot_rev_plan)} ₽ месячного плана</div>
+      </div>
+      <div class="remaining-divider"></div>
+      <div class="remaining-item">
+        <div class="remaining-label">Осталось вечеринок</div>
+        <div class="remaining-val">${remaining_events}</div>
+        <div class="remaining-sub">без данных</div>
+      </div>
+      <div class="remaining-divider"></div>
+      <div class="remaining-item">
+        <div class="remaining-label">Нужно в среднем</div>
+        <div class="remaining-val">${n(Math.round(needed_per_event))} ₽</div>
+        <div class="remaining-sub">на каждую оставшуюся вечеринку</div>
+      </div>
+      <div class="remaining-divider"></div>
+      <div class="remaining-item">
+        <div class="remaining-label">Текущий темп</div>
+        <div class="remaining-val">${withFact.length > 0 ? n(Math.round(tot_rev_fact / withFact.length)) : '—'} ₽</div>
+        <div class="remaining-sub">средняя выручка на событие</div>
+      </div>
+    </div>`;
+  }
+
+  // ── CHARTS ────────────────────────────────
+  html += `
+  <div class="charts-grid">
+    <div class="chart-card"><h3>Выручка — факт / план / С∕С</h3><div class="chart-wrap"><canvas id="chart-rev"></canvas></div></div>
+    <div class="chart-card"><h3>Гости — факт vs план</h3><div class="chart-wrap"><canvas id="chart-guests"></canvas></div></div>
+    <div class="chart-card"><h3>Средний чек — факт vs план</h3><div class="chart-wrap"><canvas id="chart-check"></canvas></div></div>
+    <div class="chart-card"><h3>Ср чек бар — факт vs план</h3><div class="chart-wrap"><canvas id="chart-bar"></canvas></div></div>
+  </div>`;
+
+  // ── EVENTS TABLE ──────────────────────────
+  const allParties = [...new Set(events.map(r => r.party))].sort();
+  const dowOrder = ['пн','вт','ср','чт','пт','сб','вс'];
+  const allDows = dowOrder.filter(d => events.some(r => r.dow === d));
+
+  const tblEvents = events.filter(r => {
+    const day = parseInt(r.date.slice(8,10), 10);
+    return (filterParty === 'all' || r.party === filterParty) &&
+      (filterDow === 'all' || r.dow === filterDow) &&
+      (filterWk === 'all' || (filterWk === 'wkend' ? WEEKEND.includes(r.dow) : !WEEKEND.includes(r.dow))) &&
+      (filterDateFrom == null || day >= filterDateFrom) &&
+      (filterDateTo == null || day <= filterDateTo);
+  });
+
+  // ── TOTALS FOR FILTERED EVENTS ────────────
+  const tblWithFact = tblEvents.filter(r => r.rev_fact != null);
+  const tbl_rev_plan   = tblEvents.reduce((a,r) => a + (r.rev_plan||0), 0);
+  const tbl_rev_fact   = tblWithFact.reduce((a,r) => a + (r.rev_fact||0), 0);
+  const tbl_rev_pct    = tbl_rev_plan ? tbl_rev_fact / tbl_rev_plan * 100 : null;
+  const tbl_pctColor   = progColor(tbl_rev_pct);
+  const tbl_pctVal     = tbl_rev_pct != null ? tbl_rev_pct.toFixed(1) : '—';
+  const tbl_guests_plan = tblEvents.reduce((a,r) => a + (r.guests_plan||0), 0);
+  const tbl_guests_fact = tblWithFact.reduce((a,r) => a + (r.guests_fact||0), 0);
+  const tbl_check_fact_total = tblWithFact.reduce((a,r)=>a+(r.guests_fact||0),0)
+    ? tblWithFact.reduce((a,r)=>a+(r.check_fact||0)*(r.guests_fact||0),0) / tblWithFact.reduce((a,r)=>a+(r.guests_fact||0),0)
+    : null;
+  const tbl_check_plan_avg = (() => {
+    const d = tblEvents.filter(r=>r.check_plan!=null&&r.guests_plan);
+    return d.length ? d.reduce((a,r)=>a+r.check_plan*r.guests_plan,0)/d.reduce((a,r)=>a+r.guests_plan,0) : null;
+  })();
+  const _bar_tbl = tblWithFact.filter(r=>r.check_bar_fact!=null&&r.guests_fact);
+  const tbl_check_bar_fact_total = _bar_tbl.length
+    ? _bar_tbl.reduce((a,r)=>a+r.check_bar_fact*r.guests_fact,0)/_bar_tbl.reduce((a,r)=>a+r.guests_fact,0)
+    : null;
+  const _bar_plan_tbl = tblEvents.filter(r=>r.check_bar_plan!=null&&r.guests_plan);
+  const tbl_check_bar_plan_avg = _bar_plan_tbl.length
+    ? _bar_plan_tbl.reduce((a,r)=>a+r.check_bar_plan*r.guests_plan,0)/_bar_plan_tbl.reduce((a,r)=>a+r.guests_plan,0)
+    : null;
+  const tbl_fr = tblWithFact.reduce((a,r)=>a+((r.rev_fact||0)-(r.cos||0)),0);
+
+  const overCount = tblEvents.filter(r => r.rev_fact != null && r.rev_fact >= r.rev_plan).length;
+  const underCount = tblEvents.filter(r => r.rev_fact != null && r.rev_fact < r.rev_plan).length;
+  const emptyCount = tblEvents.filter(r => r.rev_fact == null).length;
+
+  html += `
+  <div class="table-block">
+    <div class="table-header">
+      <h3>События — ${M[+mon]} ${year}</h3>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="tbl-filters">
+          <select class="tbl-filter" id="filter-party">
+            <option value="all">Все вечеринки</option>
+            ${allParties.map(p => `<option value="${p}" ${filterParty===p?'selected':''}>${p}</option>`).join('')}
+          </select>
+          <select class="tbl-filter" id="filter-dow">
+            <option value="all">Все дни</option>
+            ${allDows.map(d => `<option value="${d}" ${filterDow===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+          <select class="tbl-filter" id="filter-wk">
+            <option value="all" ${filterWk==='all'?'selected':''}>Будни + выходные</option>
+            <option value="wkend" ${filterWk==='wkend'?'selected':''}>Выходные (пт, сб)</option>
+            <option value="wkday" ${filterWk==='wkday'?'selected':''}>Будни</option>
+          </select>
+          <div style="display:flex;align-items:center;gap:6px;color:var(--text-3);font-size:12px">
+            <span>с</span>
+            <input type="number" id="filter-date-from" class="tbl-filter" min="1" max="31" placeholder="1"
+              value="${filterDateFrom ?? ''}" style="width:52px;text-align:center">
+            <span>по</span>
+            <input type="number" id="filter-date-to" class="tbl-filter" min="1" max="31" placeholder="31"
+              value="${filterDateTo ?? ''}" style="width:52px;text-align:center">
+          </div>
+        </div>
+        <div class="table-legend">
+          <span><span class="legend-dot" style="background:#16a34a"></span>Выше плана (${overCount})</span>
+          <span><span class="legend-dot" style="background:#dc2626"></span>Ниже плана (${underCount})</span>
+          <span><span class="legend-dot" style="background:#94a3b8"></span>Нет данных (${emptyCount})</span>
+        </div>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="events-table">
+      <thead>
+        <tr>
+          <th>Дата</th><th>День</th><th>Вечеринка</th>
+          <th class="r">Рев план</th><th class="r">Рев факт</th><th class="r">% плана</th>
+          <th class="r">Гости пл</th><th class="r">Гости ф</th><th class="r">Δ гости</th>
+          <th class="r">Ср чек ф</th><th class="r">Δ чек</th>
+          <th class="r">Ср чек бар ф</th><th class="r">Δ бар</th>
+          <th class="r">С/С</th><th class="r">ФР</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  tblEvents.forEach(r => {
+    const dt = r.date.slice(8,10) + '.' + r.date.slice(5,7);
+    const hasFact = r.rev_fact != null;
+    const p2 = pct(r.rev_fact, r.rev_plan);
+    let rowCls = hasFact ? (r.rev_fact >= r.rev_plan ? 'row-over' : 'row-under') : 'row-empty';
+    const pctColor2 = progColor(p2);
+    const fillW2 = p2 != null ? Math.min(p2, 100) : 0;
+
+    const fr_val = r.rev_fact != null ? r.rev_fact - (r.cos||0) : null;
+    const frHtml = fr_val != null
+      ? `<span class="${fr_val >= 0 ? 'fr-pos' : 'fr-neg'}">${fr_val >= 0 ? '+' : ''}${n(Math.round(fr_val))}</span>`
+      : '<span class="fr-na">—</span>';
+
+    const pctHtml = hasFact && p2 != null ? `
+      <div class="mini-prog">
+        <div class="mini-bar"><div class="mini-fill" style="width:${fillW2}%;background:${pctColor2}"></div></div>
+        <span class="pct-text" style="color:${pctColor2}">${p2.toFixed(1)}%</span>
+      </div>` : '<span style="color:var(--text-3)">—</span>';
+
+    html += `<tr class="${rowCls}">
+      <td style="color:var(--text-2);font-size:11px">${dt}</td>
+      <td style="color:var(--text-3);font-size:11px">${r.dow}</td>
+      <td class="party-cell"><span class="event-dot" style="background:${hasFact?(r.rev_fact>=r.rev_plan?'#16a34a':'#dc2626'):'#94a3b8'}"></span>${r.party}</td>
+      <td class="r" style="color:var(--text-2)">${n(r.rev_plan)}</td>
+      <td class="r" style="font-weight:700">${hasFact ? n(r.rev_fact) : '—'}</td>
+      <td class="r">${pctHtml}</td>
+      <td class="r" style="color:var(--text-3)">${n(r.guests_plan)}</td>
+      <td class="r">${hasFact ? n(r.guests_fact) : '—'}</td>
+      <td class="r">${hasFact && r.guests_plan ? deltaTag(r.guests_fact - r.guests_plan) : '<span class="fr-na">—</span>'}</td>
+      <td class="r">${hasFact ? n(r.check_fact) + ' ₽' : '—'}</td>
+      <td class="r">${hasFact && r.check_plan ? deltaTag(r.check_fact - r.check_plan) : '<span class="fr-na">—</span>'}</td>
+      <td class="r">${hasFact ? n(r.check_bar_fact) + ' ₽' : '—'}</td>
+      <td class="r">${hasFact && r.check_bar_plan ? deltaTag(r.check_bar_fact - r.check_bar_plan) : '<span class="fr-na">—</span>'}</td>
+      <td class="r" style="color:var(--text-2)">${n(r.cos)}</td>
+      <td class="r">${frHtml}</td>
+    </tr>`;
+  });
+
+  // Total row — computed from filtered tblEvents
+  html += `<tr class="row-total">
+    <td colspan="3">ИТОГО — ${tblWithFact.length} из ${tblEvents.length} событий с данными</td>
+    <td class="r">${n(tbl_rev_plan)}</td>
+    <td class="r">${n(tbl_rev_fact)}</td>
+    <td class="r">
+      ${tbl_rev_pct != null ? `<div class="mini-prog">
+        <div class="mini-bar"><div class="mini-fill" style="width:${Math.min(tbl_rev_pct,100)}%;background:${tbl_pctColor}"></div></div>
+        <span class="pct-text" style="color:${tbl_pctColor}">${tbl_pctVal}%</span>
+      </div>` : '—'}
+    </td>
+    <td class="r">${n(tbl_guests_plan)}</td>
+    <td class="r">${n(tbl_guests_fact)}</td>
+    <td class="r">${tbl_guests_fact != null ? deltaTag(tbl_guests_fact - tbl_guests_plan) : '—'}</td>
+    <td class="r">${tbl_check_fact_total != null ? n(Math.round(tbl_check_fact_total)) + ' ₽' : '—'}</td>
+    <td class="r">${tbl_check_fact_total != null && tbl_check_plan_avg ? deltaTag(Math.round(tbl_check_fact_total - tbl_check_plan_avg)) : '—'}</td>
+    <td class="r">${tbl_check_bar_fact_total != null ? n(Math.round(tbl_check_bar_fact_total)) + ' ₽' : '—'}</td>
+    <td class="r">${tbl_check_bar_fact_total != null && tbl_check_bar_plan_avg ? deltaTag(Math.round(tbl_check_bar_fact_total - tbl_check_bar_plan_avg)) : '—'}</td>
+    <td class="r">—</td>
+    <td class="r"><span class="${tbl_fr>=0?'fr-pos':'fr-neg'}">${tbl_fr>=0?'+':''}${n(tbl_fr)}</span></td>
+  </tr>`;
+
+  html += `</tbody></table></div></div>`;
+
+  document.getElementById('main-content').innerHTML = html;
+
+  // ── TABLE FILTER HANDLERS ─────────────────
+  const fpEl  = document.getElementById('filter-party');
+  const fdEl  = document.getElementById('filter-dow');
+  const fwEl  = document.getElementById('filter-wk');
+  const fdfEl = document.getElementById('filter-date-from');
+  const fdtEl = document.getElementById('filter-date-to');
+  const syncFilters = () => {
+    filterParty    = fpEl?.value  || 'all';
+    filterDow      = fdEl?.value  || 'all';
+    filterWk       = fwEl?.value  || 'all';
+    filterDateFrom = fdfEl?.value ? parseInt(fdfEl.value, 10) : null;
+    filterDateTo   = fdtEl?.value ? parseInt(fdtEl.value, 10) : null;
+    renderAll();
+  };
+  if (fpEl)  fpEl.onchange  = syncFilters;
+  if (fdEl)  fdEl.onchange  = syncFilters;
+  if (fwEl)  fwEl.onchange  = syncFilters;
+  if (fdfEl) fdfEl.onchange = syncFilters;
+  if (fdtEl) fdtEl.onchange = syncFilters;
+
+  // ── CHART RENDER ──────────────────────────
+  Object.values(chartInstances).forEach(c => c.destroy());
+  chartInstances = {};
+
+  const chartLabels = events.map(r => [
+    r.date.slice(8,10) + '.' + r.date.slice(5,7) + ' ' + r.dow,
+    r.party.length > 12 ? r.party.slice(0,12)+'…' : r.party
+  ]);
+
+  const commonOpts = (unit, rub) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } },
+      tooltip: { callbacks: {
+        label: c => ' ' + c.dataset.label + ': ' + (c.raw != null ? c.raw.toLocaleString('ru-RU') + unit : 'нет данных')
+      }}
+    },
+    scales: {
+      x: { ticks: { font: { size: 8 }, maxRotation: 45, color: '#64748b' }, grid: { display: false } },
+      y: { ticks: { font: { size: 9 }, color: '#94a3b8',
+        callback: rub
+          ? v => Math.abs(v) >= 1000000 ? (v/1000000).toFixed(1)+'M' : (v/1000).toFixed(0)+'К'
+          : v => v
+      }, grid: { color: '#f1f5f9' } }
+    }
+  });
+
+  const planLine = (data) => ({
+    label: 'План', data, type: 'line',
+    borderColor: '#475569', borderDash: [5,3], borderWidth: 1.5,
+    pointRadius: 2, pointBackgroundColor: '#475569',
+    fill: false, tension: 0.1, order: 1
+  });
+
+  // 1. ВЫРУЧКА + С/С
+  const revBarColors = events.map(r =>
+    r.rev_fact == null ? 'rgba(148,163,184,0.35)'
+    : r.rev_fact >= r.rev_plan ? 'rgba(22,163,74,0.72)' : 'rgba(220,38,38,0.65)');
+  const revBorderColors = events.map(r =>
+    r.rev_fact == null ? '#94a3b8'
+    : r.rev_fact >= r.rev_plan ? '#16a34a' : '#dc2626');
+
+  chartInstances.rev = new Chart(document.getElementById('chart-rev'), {
+    type: 'bar',
+    data: { labels: chartLabels, datasets: [
+      { label: 'Факт', data: events.map(r => r.rev_fact), backgroundColor: revBarColors, borderColor: revBorderColors, borderWidth: 1.5, borderRadius: 3, order: 3 },
+      planLine(events.map(r => r.rev_plan)),
+      { label: 'С/С', data: events.map(r => r.cos), type: 'line',
+        borderColor: '#f59e0b', borderDash: [3,2], borderWidth: 2,
+        pointRadius: 2, pointBackgroundColor: '#f59e0b',
+        fill: false, tension: 0.1, order: 2 }
+    ]},
+    options: commonOpts(' ₽', true)
+  });
+
+  // 2. ГОСТИ
+  const guestColors = events.map(r =>
+    r.guests_fact == null ? 'rgba(148,163,184,0.35)'
+    : r.guests_fact >= r.guests_plan ? 'rgba(99,102,241,0.75)' : 'rgba(99,102,241,0.4)');
+
+  chartInstances.guests = new Chart(document.getElementById('chart-guests'), {
+    type: 'bar',
+    data: { labels: chartLabels, datasets: [
+      { label: 'Факт', data: events.map(r => r.guests_fact), backgroundColor: guestColors, borderColor: '#6366f1', borderWidth: 1, borderRadius: 3, order: 2 },
+      planLine(events.map(r => r.guests_plan))
+    ]},
+    options: commonOpts(' чел', false)
+  });
+
+  // 3. СРЕДНИЙ ЧЕК
+  const checkColors = events.map(r =>
+    r.check_fact == null ? 'rgba(148,163,184,0.35)'
+    : r.check_fact >= r.check_plan ? 'rgba(20,184,166,0.75)' : 'rgba(20,184,166,0.4)');
+
+  chartInstances.check = new Chart(document.getElementById('chart-check'), {
+    type: 'bar',
+    data: { labels: chartLabels, datasets: [
+      { label: 'Факт', data: events.map(r => r.check_fact), backgroundColor: checkColors, borderColor: '#14b8a6', borderWidth: 1, borderRadius: 3, order: 2 },
+      planLine(events.map(r => r.check_plan))
+    ]},
+    options: commonOpts(' ₽', false)
+  });
+
+  // 4. СР ЧЕК БАР
+  const barCheckColors = events.map(r =>
+    r.check_bar_fact == null ? 'rgba(148,163,184,0.35)'
+    : r.check_bar_fact >= r.check_bar_plan ? 'rgba(168,85,247,0.75)' : 'rgba(168,85,247,0.4)');
+
+  chartInstances.barCheck = new Chart(document.getElementById('chart-bar'), {
+    type: 'bar',
+    data: { labels: chartLabels, datasets: [
+      { label: 'Факт', data: events.map(r => r.check_bar_fact), backgroundColor: barCheckColors, borderColor: '#a855f7', borderWidth: 1, borderRadius: 3, order: 2 },
+      planLine(events.map(r => r.check_bar_plan))
+    ]},
+    options: commonOpts(' ₽', false)
+  });
+}
+
+
+// ══════════════════════════════════════════════
+//  GOOGLE SHEETS LOADER (JSONP — works from file:// and any server)
+// ══════════════════════════════════════════════
+const SHEET_ID  = '1ce5KrwNgl5TqrWdpDdbTD0Tp7ie-G8Iqd2llFpTYKNE';
+const SHEET_GID = '215168251'; // numeric ID of sheet «Данные»
+
+function gvizDateToStr(v) {
+  if (v == null) return null;
+  const m = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
+  if (m) {
+    const mo = String(+m[2] + 1).padStart(2, '0');
+    const d  = String(+m[3]).padStart(2, '0');
+    return `${m[1]}-${mo}-${d}`;
+  }
+  return String(v).trim();
+}
+
+function gvizToData(table) {
+  // Map column labels (lowercased) to indices
+  const labelMap = {};
+  table.cols.forEach((c, i) => {
+    const lbl = (c.label || '').trim().toLowerCase();
+    if (lbl) labelMap[lbl] = i;
+  });
+
+  // From actual sheet headers (screenshot-verified):
+  // 0: тех столбец с/с (skip)
+  // 1: год оддс          → year
+  // 2: месяц             → month
+  // 3: дата              → date
+  // 4: день недели       → dow
+  // 5: названине вечеринки → party (typo in sheet, intentional)
+  // 6: план выручка план → rev_plan
+  // 7: с/с открытия      → cos
+  // 8: кол-во гостей план → guests_plan
+  // 9: ср чек план       → check_plan
+  // 10: ср чек бар план  → check_bar_plan
+  // 11: факт выручка факт итого → rev_fact
+  // 12: выручка факт     → rev_entrance
+  // 13: выручка факт бар → (bar revenue, not used)
+  // 14: прогнозируемый фр → (skip)
+  // 15: кол-во гостей факт → guests_fact
+  // 16: ср чек факт      → check_fact
+  // 17: ср чек бар факт  → check_bar_fact
+
+  const colIdx = (candidates, fallback) => {
+    for (const c of candidates) {
+      if (labelMap[c] !== undefined) return labelMap[c];
+    }
+    return fallback;
+  };
+
+  const iYear     = colIdx(['год оддс','год','year'], 1);
+  const iMonth    = colIdx(['месяц','month'], 2);
+  const iDate     = colIdx(['дата','date'], 3);
+  const iDow      = colIdx(['день недели','день','dow'], 4);
+  const iParty    = colIdx(['названине вечеринки','название вечеринки','вечеринка','party'], 5);
+  const iRevPlan  = colIdx(['план выручка план','план выручки','rev_plan'], 6);
+  const iCos      = colIdx(['с/с открытия','с/с','cos'], 7);
+  const iGPlan    = colIdx(['кол-во гостей план','гости план','guests_plan'], 8);
+  const iChkPlan  = colIdx(['ср чек план','check_plan'], 9);
+  const iChkBPlan = colIdx(['ср чек бар план','check_bar_plan'], 10);
+  const iRevFact  = colIdx(['факт выручка факт итого','rev_fact','выручка факт итого'], 11);
+  const iRevEnt   = colIdx(['выручка факт','rev_entrance','выручка вход'], 12);
+  const iGFact    = colIdx(['кол-во гостей факт','гости факт','guests_fact'], 15);
+  const iChkFact  = colIdx(['ср чек факт','check_fact'], 16);
+  const iChkBFact = colIdx(['ср чек бар факт','check_bar_fact'], 17);
+
+  const num = v => {
+    if (v == null) return null;
+    const s = String(v).trim().replace(/\s/g, '').replace(',', '.');
+    if (!s || s === '-' || s === '—') return null;
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  };
+
+  const val = (row, i) => (row.c && row.c[i] != null) ? row.c[i].v : null;
+
+  return table.rows
+    .map(row => {
+      const rawDate = gvizDateToStr(val(row, iDate));
+      if (!rawDate || !/\d{4}-\d{2}-\d{2}/.test(rawDate)) return null;
+      return {
+        year:          parseInt(val(row, iYear))  || parseInt(rawDate.slice(0, 4)),
+        month:         parseInt(val(row, iMonth)) || parseInt(rawDate.slice(5, 7)),
+        date:          rawDate,
+        dow:           String(val(row, iDow)  || '').trim(),
+        party:         String(val(row, iParty) || '').trim(),
+        rev_plan:      num(val(row, iRevPlan)),
+        cos:           num(val(row, iCos)),
+        guests_plan:   num(val(row, iGPlan)),
+        check_plan:    num(val(row, iChkPlan)),
+        check_bar_plan:num(val(row, iChkBPlan)),
+        rev_fact:      num(val(row, iRevFact)),
+        rev_entrance:  num(val(row, iRevEnt)),
+        guests_fact:   num(val(row, iGFact)),
+        check_fact:    num(val(row, iChkFact)),
+        check_bar_fact:num(val(row, iChkBFact)),
+        fr: null
+      };
+    })
+    .filter(r => r !== null);
+}
+
+function loadViaGviz() {
+  return new Promise((resolve, reject) => {
+    // gviz always calls google.visualization.Query.setResponse() — we define it
+    window.google = window.google || {};
+    window.google.visualization = window.google.visualization || {};
+    window.google.visualization.Query = {
+      setResponse: function(resp) {
+        if (script.parentNode) script.parentNode.removeChild(script);
+        if (resp.status !== 'ok') {
+          const msg = (resp.errors && resp.errors[0]) ? resp.errors[0].detailed_message || resp.errors[0].message : 'gviz error';
+          reject(new Error(msg));
+          return;
+        }
+        try {
+          resolve(gvizToData(resp.table));
+        } catch(e) {
+          reject(e);
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`;
+    script.onerror = () => {
+      if (script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('Не удалось загрузить скрипт таблицы. Убедись, что таблица открыта для просмотра.'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+async function loadAndInit() {
+  try {
+    const data = await loadViaGviz();
+    if (!data.length) throw new Error('Нет данных в листе «Данные»');
+    ALL_DATA = data;
+    // Re-populate derived arrays
+    allMonths.length = 0; allYears.length = 0; months.length = 0;
+    [...new Set(ALL_DATA.map(r => r.date.slice(0,7)))].sort().reverse().forEach(m => allMonths.push(m));
+    [...new Set(ALL_DATA.map(r => r.year))].sort().reverse().forEach(y => allYears.push(y));
+    allMonths.forEach(m => months.push(m));
+    currentMonth = allMonths[0];
+    document.getElementById('loading-overlay').style.display = 'none';
+    initTabs();
+    renderAll();
+  } catch(e) {
+    const errEl = document.getElementById('load-error');
+    errEl.textContent = 'Ошибка: ' + e.message;
+    errEl.style.display = 'block';
+    console.error('loadAndInit error:', e);
+  }
+}
+// ══════════════════════════════════════════════
+loadAndInit();
+</script>
+
+  <div id="loading-overlay" style="position:fixed;inset:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;">
+    <img src="https://static.tildacdn.com/tild6361-6666-4539-a335-643031663030/logo.svg" alt="BAZZAR" style="height:60px;opacity:.9;" onerror="this.src='logo.png'">
+    <div style="color:#888;font-size:13px;letter-spacing:.08em;">Загрузка данных…</div>
+    <div id="load-error" style="color:#e55;font-size:12px;display:none;max-width:340px;text-align:center;"></div>
+  </div>
+</body>
+</html>
