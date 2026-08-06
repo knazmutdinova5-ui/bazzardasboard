@@ -477,6 +477,27 @@ input[type=number].tbl-filter::-webkit-inner-spin-button { -webkit-appearance: n
 .t2-b25{background:#e2e8f0;color:#475569;}.t2-b26{background:#eef2ff;color:#6366f1;}
 @media(max-width:700px){.t2-summary{grid-template-columns:1fr 1fr;}}
 
+
+  #auth-overlay {
+    position: fixed; inset: 0; background: #0a0a0f;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 99999; gap: 20px;
+  }
+  #auth-overlay img { height: 56px; opacity: .9; margin-bottom: 8px; }
+  #auth-overlay input {
+    background: #1a1a2e; border: 1px solid #2d2d4e; color: #e2e8f0;
+    padding: 12px 20px; border-radius: 8px; font-size: 15px;
+    outline: none; text-align: center; width: 240px; letter-spacing: .1em;
+  }
+  #auth-overlay input:focus { border-color: #6366f1; }
+  #auth-overlay button {
+    background: #6366f1; color: #fff; border: none; border-radius: 8px;
+    padding: 12px 32px; font-size: 14px; font-weight: 600; cursor: pointer;
+    letter-spacing: .05em;
+  }
+  #auth-overlay button:hover { background: #4f46e5; }
+  #auth-error { color: #e55; font-size: 13px; display: none; }
+
 </style>
 </head>
 <body>
@@ -621,16 +642,17 @@ function renderTab2() {
     return v == null ? '—' : (m.isAvg ? n(Math.round(v)) : m.fmt(v)) + m.suffix;
   };
 
-  // ── Summary cards (Jan-Jun both years, current metric) ────────
-  const CMP = [1,2,3,4,5,6];
+  // ── Summary cards: all months present in 2026 (dynamic) ────────
+  const CMP = [...new Set(ALL_DATA.filter(r => r.year===2026).map(r => r.month))].sort((a,b)=>a-b);
+  const cmpLabel = CMP.length ? M[CMP[0]] + (CMP.length>1 ? ('–' + M[CMP[CMP.length-1]]) : '') : '';
   const s25 = metricVal(filterT2(ALL_DATA.filter(r => r.year===2025 && CMP.includes(r.month))), t2Metric);
   const s26 = metricVal(filterT2(ALL_DATA.filter(r => r.year===2026 && CMP.includes(r.month))), t2Metric);
   const dAbs = (s25!=null && s26!=null) ? s26-s25 : null;
   const dPct = (s25 && dAbs!=null) ? dAbs/s25*100 : null;
 
   const sumHtml = `<div class="t2-summary">
-    <div class="t2-sum-card"><div class="t2-sum-label">2025 (янв–июн)</div><div class="t2-sum-val">${fmtV(s25)}</div><div class="t2-sum-sub">Сопоставимый период</div></div>
-    <div class="t2-sum-card"><div class="t2-sum-label">2026 (янв–июн)</div><div class="t2-sum-val">${fmtV(s26)}</div><div class="t2-sum-sub">Текущий год</div></div>
+    <div class="t2-sum-card"><div class="t2-sum-label">2025 (${cmpLabel.toLowerCase()})</div><div class="t2-sum-val">${fmtV(s25)}</div><div class="t2-sum-sub">Сопоставимый период</div></div>
+    <div class="t2-sum-card"><div class="t2-sum-label">2026 (${cmpLabel.toLowerCase()})</div><div class="t2-sum-val">${fmtV(s26)}</div><div class="t2-sum-sub">Текущий год</div></div>
     <div class="t2-sum-card"><div class="t2-sum-label">Δ абсолютный</div>
       <div class="t2-sum-val" style="color:${dAbs==null?'var(--text-3)':dAbs>=0?'var(--green)':'var(--red)'}">
         ${dAbs==null?'—':sg(dAbs)+(mc.isAvg?n(Math.round(dAbs)):mc.fmt(dAbs))+mc.suffix}</div>
@@ -1496,6 +1518,32 @@ function renderAll() {
 }
 
 
+
+// ── AUTH ────────────────────────────────────────────────────────
+const AUTH_KEY = 'bz_auth';
+const AUTH_PASS = 'bazzar666';
+
+function checkAuth() {
+  const val = document.getElementById('auth-input').value;
+  if (val === AUTH_PASS) {
+    localStorage.setItem(AUTH_KEY, '1');
+    document.getElementById('auth-overlay').remove();
+    loadAndInit();
+  } else {
+    document.getElementById('auth-error').style.display = 'block';
+    document.getElementById('auth-input').value = '';
+    document.getElementById('auth-input').focus();
+  }
+}
+
+function initAuth() {
+  if (localStorage.getItem(AUTH_KEY) === '1') {
+    document.getElementById('auth-overlay').remove();
+    loadAndInit();
+  }
+  // else: auth overlay stays visible, user must type password
+}
+
 // ══════════════════════════════════════════════
 //  GOOGLE SHEETS LOADER (JSONP — works from file:// and any server)
 // ══════════════════════════════════════════════
@@ -1652,8 +1700,16 @@ async function loadAndInit() {
   }
 }
 // ══════════════════════════════════════════════
-loadAndInit();
+initAuth();
 </script>
+
+  
+  <div id="auth-overlay">
+    <img src="https://static.tildacdn.com/tild6361-6666-4539-a335-643031663030/logo.svg" alt="BAZZAR" onerror="this.src='logo.png'">
+    <input type="password" id="auth-input" placeholder="Пароль" onkeydown="if(event.key==='Enter')checkAuth()">
+    <button onclick="checkAuth()">Войти</button>
+    <div id="auth-error">Неверный пароль</div>
+  </div>
 
   <div id="loading-overlay" style="position:fixed;inset:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;">
     <img src="https://static.tildacdn.com/tild6361-6666-4539-a335-643031663030/logo.svg" alt="BAZZAR" style="height:60px;opacity:.9;" onerror="this.src='logo.png'">
