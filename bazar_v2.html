@@ -1048,7 +1048,8 @@ function renderAll() {
   const tot_guests_plan = events.reduce((a,r) => a + (r.guests_plan||0), 0);
   const tot_guests_fact = withFact.reduce((a,r) => a + (r.guests_fact||0), 0);
   const tot_fr = withFact.reduce((a,r) => a + ((r.rev_fact||0) - (r.cos||0)), 0);
-  const tot_rev_bar = withFact.reduce((a,r) => a + (r.rev_bar||0), 0);
+  const tot_rev_entrance = withFact.reduce((a,r) => a + (r.rev_entrance||0), 0);
+  const tot_rev_bar = withFact.reduce((a,r) => a + Math.max(0,(r.rev_fact||0) - (r.rev_entrance||0)), 0);
   // Взвешенное среднее ср чека бара (работает и без rev_bar)
   const bar_with_data = withFact.filter(r => r.check_bar_fact != null && r.guests_fact);
   const check_bar_fact_weighted = bar_with_data.length
@@ -1140,6 +1141,9 @@ function renderAll() {
     </div>`;
   }
 
+  const rev_bar_pct  = tot_rev_fact ? (tot_rev_bar / tot_rev_fact * 100) : null;
+  const rev_ent_pct  = tot_rev_fact ? (tot_rev_entrance / tot_rev_fact * 100) : null;
+
   html += `<div class="kpi-grid">
     ${kpiCard('Гости', tot_guests_fact, tot_guests_plan, ' чел')}
     ${kpiCard('Средний чек', Math.round(check_fact_total), Math.round(check_plan_avg), ' ₽')}
@@ -1151,6 +1155,24 @@ function renderAll() {
         <span class="kpi-plan">avg на событие</span>
       </div>
       <div style="font-size:15px;font-weight:700;margin-top:4px;color:${avg_fr_per_event>=0?'var(--green)':'var(--red)'}">${avg_fr_per_event>=0?'+':''}${n(Math.round(avg_fr_per_event))} ₽</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Выручка — Бар</div>
+      <div class="kpi-fact">${tot_rev_bar > 0 ? nm(tot_rev_bar) : '—'}<span style="font-size:13px;font-weight:400;color:var(--text-3)"> ₽</span></div>
+      <div class="kpi-row">
+        <span class="kpi-plan">от общей выручки</span>
+        <span class="kpi-delta" style="color:var(--text-2)">${rev_bar_pct != null ? rev_bar_pct.toFixed(1)+'%' : '—'}</span>
+      </div>
+      <div class="kpi-mini-bar"><div class="kpi-mini-fill" style="width:${rev_bar_pct != null ? Math.min(rev_bar_pct,100) : 0}%;background:#a855f7"></div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Выручка — Вход</div>
+      <div class="kpi-fact">${tot_rev_entrance > 0 ? nm(tot_rev_entrance) : '—'}<span style="font-size:13px;font-weight:400;color:var(--text-3)"> ₽</span></div>
+      <div class="kpi-row">
+        <span class="kpi-plan">от общей выручки</span>
+        <span class="kpi-delta" style="color:var(--text-2)">${rev_ent_pct != null ? rev_ent_pct.toFixed(1)+'%' : '—'}</span>
+      </div>
+      <div class="kpi-mini-bar"><div class="kpi-mini-fill" style="width:${rev_ent_pct != null ? Math.min(rev_ent_pct,100) : 0}%;background:#f59e0b"></div></div>
     </div>
   </div>`;
 
