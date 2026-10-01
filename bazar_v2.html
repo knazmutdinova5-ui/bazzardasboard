@@ -627,6 +627,36 @@ function switchTab(n) {
 function t2SetMetric(m)      { t2Metric = m;      renderTab2(); }
 function t2SetDrillMode(m) { t2DrillMode=m; renderTab2(); }
 function t2SetDrillMetric(m) { t2DrillMetric = m; renderTab2(); }
+function t2SetWk(v) { t2Wk = v; renderTab2(); }
+
+// ── Tab 2 filter delegation (survives re-renders) ──────────────
+document.addEventListener('change', function(e) {
+  const id = e.target.id;
+  if (id === 't2-wk') {
+    t2Wk = e.target.value || 'all';
+    renderTab2();
+  } else if (id === 't2-df' || id === 't2-dt') {
+    t2DayFrom = document.getElementById('t2-df')?.value ? parseInt(document.getElementById('t2-df').value,10) : null;
+    t2DayTo   = document.getElementById('t2-dt')?.value ? parseInt(document.getElementById('t2-dt').value,10) : null;
+    renderTab2();
+  } else if (id === 't2-ms-period') {
+    t2Month = e.target.value ? parseInt(e.target.value,10) : null;
+    const drillSel = document.getElementById('t2-ms-drill');
+    if (drillSel) drillSel.value = e.target.value;
+    renderTab2();
+  } else if (id === 't2-ms-drill') {
+    t2Month = e.target.value ? parseInt(e.target.value,10) : null;
+    const pSel = document.getElementById('t2-ms-period');
+    if (pSel) pSel.value = e.target.value;
+    renderTab2();
+  } else if (['t2-ca-from','t2-ca-to','t2-cb-from','t2-cb-to'].includes(id)) {
+    t2CA_from = document.getElementById('t2-ca-from')?.value || '';
+    t2CA_to   = document.getElementById('t2-ca-to')?.value   || '';
+    t2CB_from = document.getElementById('t2-cb-from')?.value || '';
+    t2CB_to   = document.getElementById('t2-cb-to')?.value   || '';
+    renderTab2();
+  }
+});
 
 // ══════════════════════════════════════════════
 //  RENDER TAB 2
@@ -942,40 +972,6 @@ function renderTab2() {
     });
   }
 
-  // Handlers
-  const sync = () => {
-    t2Wk = document.getElementById('t2-wk')?.value || 'all';
-    t2DayFrom = document.getElementById('t2-df')?.value ? parseInt(document.getElementById('t2-df').value,10) : null;
-    t2DayTo   = document.getElementById('t2-dt')?.value ? parseInt(document.getElementById('t2-dt').value,10) : null;
-    renderTab2();
-  };
-  document.getElementById('t2-wk')?.addEventListener('change', sync);
-  document.getElementById('t2-df')?.addEventListener('change', sync);
-  document.getElementById('t2-dt')?.addEventListener('change', sync);
-  document.getElementById('t2-ms-period')?.addEventListener('change', e => {
-    t2Month = e.target.value ? parseInt(e.target.value,10) : null;
-    const drillSel = document.getElementById('t2-ms-drill');
-    if (drillSel) drillSel.value = e.target.value;
-    renderTab2();
-  });
-  document.getElementById('t2-ms-drill')?.addEventListener('change', e => {
-    t2Month = e.target.value ? parseInt(e.target.value,10) : null;
-    const pSel = document.getElementById('t2-ms-period');
-    if (pSel) pSel.value = e.target.value;
-    renderTab2();
-  });
-  // Custom period date handlers
-  const syncCustom = () => {
-    t2CA_from = document.getElementById('t2-ca-from')?.value || '';
-    t2CA_to   = document.getElementById('t2-ca-to')?.value   || '';
-    t2CB_from = document.getElementById('t2-cb-from')?.value || '';
-    t2CB_to   = document.getElementById('t2-cb-to')?.value   || '';
-    renderTab2();
-  };
-  document.getElementById('t2-ca-from')?.addEventListener('change', syncCustom);
-  document.getElementById('t2-ca-to')?.addEventListener('change',   syncCustom);
-  document.getElementById('t2-cb-from')?.addEventListener('change', syncCustom);
-  document.getElementById('t2-cb-to')?.addEventListener('change',   syncCustom);
 }
 
 function t2PeriodMode(custom) { t2UseCustom = custom; renderTab2(); }
@@ -1056,7 +1052,7 @@ function renderAll() {
     ? bar_with_data.reduce((a,r) => a + r.check_bar_fact * r.guests_fact, 0) / bar_with_data.reduce((a,r) => a + r.guests_fact, 0)
     : null;
   const check_fact_total = tot_guests_fact ? tot_rev_fact / tot_guests_fact : null;
-  const check_plan_avg = events.filter(r=>r.check_plan).reduce((a,r)=>a+r.check_plan,0) / events.filter(r=>r.check_plan).length;
+  const check_plan_avg = tot_guests_plan ? tot_rev_plan / tot_guests_plan : null;
   const check_bar_fact_total = check_bar_fact_weighted;
   const bar_plan_with_data = events.filter(r => r.check_bar_plan != null && r.guests_plan);
   const check_bar_plan_avg = bar_plan_with_data.length
