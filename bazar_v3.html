@@ -1057,16 +1057,28 @@ function renderAll() {
   const [year, mon] = currentMonth.split('-');
   const isCurrent = currentMonth === allMonths[0]; // most recent month = in progress
 
-  // Totals
-  const withFact = events.filter(r => r.rev_fact != null);
-  const withoutFact = events.filter(r => r.rev_fact == null);
-  const tot_rev_plan = events.reduce((a,r) => a + (r.rev_plan||0), 0);
-  const tot_rev_fact = withFact.reduce((a,r) => a + r.rev_fact, 0);
-  const tot_guests_plan = events.reduce((a,r) => a + (r.guests_plan||0), 0);
-  const tot_guests_fact = withFact.reduce((a,r) => a + (r.guests_fact||0), 0);
-  const tot_fr = withFact.reduce((a,r) => a + ((r.rev_fact||0) - (r.cos||0)), 0);
-  const tot_rev_entrance = withFact.reduce((a,r) => a + (r.rev_entrance||0), 0);
-  const tot_rev_bar = withFact.reduce((a,r) => a + Math.max(0,(r.rev_fact||0) - (r.rev_entrance||0)), 0);
+  // Active filters
+  const WEEKEND = ['пт','сб'];
+  const tblEvents = events.filter(r => {
+    const day = parseInt(r.date.slice(8,10), 10);
+    return (filterParty === 'all' || r.party === filterParty) &&
+      (filterDow === 'all' || r.dow === filterDow) &&
+      (filterWk === 'all' || (filterWk === 'wkend' ? WEEKEND.includes(r.dow) : !WEEKEND.includes(r.dow))) &&
+      (filterDateFrom == null || day >= filterDateFrom) &&
+      (filterDateTo == null || day <= filterDateTo);
+  });
+  const tblWithFact = tblEvents.filter(r => r.rev_fact != null);
+
+  // Totals (filtered by active filter)
+  const withFact = tblWithFact;
+  const withoutFact = tblEvents.filter(r => r.rev_fact == null);
+  const tot_rev_plan = tblEvents.reduce((a,r) => a + (r.rev_plan||0), 0);
+  const tot_rev_fact = tblWithFact.reduce((a,r) => a + r.rev_fact, 0);
+  const tot_guests_plan = tblEvents.reduce((a,r) => a + (r.guests_plan||0), 0);
+  const tot_guests_fact = tblWithFact.reduce((a,r) => a + (r.guests_fact||0), 0);
+  const tot_fr = tblWithFact.reduce((a,r) => a + ((r.rev_fact||0) - (r.cos||0)), 0);
+  const tot_rev_entrance = tblWithFact.reduce((a,r) => a + (r.rev_entrance||0), 0);
+  const tot_rev_bar = tblWithFact.reduce((a,r) => a + Math.max(0,(r.rev_fact||0) - (r.rev_entrance||0)), 0);
 
   // New metrics
   const withAge = withFact.filter(r => r.avg_age != null && r.guests_fact);
@@ -1139,7 +1151,7 @@ function renderAll() {
       </div>
       <div class="rev-meta-item">
         <span class="rev-meta-label">событий</span>
-        <span class="rev-meta-val">${withFact.length} из ${events.length}</span>
+        <span class="rev-meta-val">${tblWithFact.length} из ${tblEvents.length}</span>
       </div>
       <div class="rev-meta-item">
         <span class="rev-meta-label">ФР итого</span>
@@ -1223,9 +1235,8 @@ function renderAll() {
   </div>`;
 
   // ── БУДНИ / ВЫХОДНЫЕ ──────────────────────
-  const WEEKEND = ['пт','сб'];
-  const wkend = withFact.filter(r => WEEKEND.includes(r.dow));
-  const wkday = withFact.filter(r => !WEEKEND.includes(r.dow));
+  const wkend = events.filter(r => WEEKEND.includes(r.dow) && r.rev_fact != null);
+  const wkday = events.filter(r => !WEEKEND.includes(r.dow) && r.rev_fact != null);
   const wkend_plan = events.filter(r => WEEKEND.includes(r.dow));
   const wkday_plan = events.filter(r => !WEEKEND.includes(r.dow));
 
@@ -1306,17 +1317,7 @@ function renderAll() {
   const dowOrder = ['пн','вт','ср','чт','пт','сб','вс'];
   const allDows = dowOrder.filter(d => events.some(r => r.dow === d));
 
-  const tblEvents = events.filter(r => {
-    const day = parseInt(r.date.slice(8,10), 10);
-    return (filterParty === 'all' || r.party === filterParty) &&
-      (filterDow === 'all' || r.dow === filterDow) &&
-      (filterWk === 'all' || (filterWk === 'wkend' ? WEEKEND.includes(r.dow) : !WEEKEND.includes(r.dow))) &&
-      (filterDateFrom == null || day >= filterDateFrom) &&
-      (filterDateTo == null || day <= filterDateTo);
-  });
-
   // ── TOTALS FOR FILTERED EVENTS ────────────
-  const tblWithFact = tblEvents.filter(r => r.rev_fact != null);
   const tbl_rev_plan   = tblEvents.reduce((a,r) => a + (r.rev_plan||0), 0);
   const tbl_rev_fact   = tblWithFact.reduce((a,r) => a + (r.rev_fact||0), 0);
   const tbl_rev_pct    = tbl_rev_plan ? tbl_rev_fact / tbl_rev_plan * 100 : null;
@@ -1481,7 +1482,7 @@ function renderAll() {
   if (fwEl)  fwEl.onchange  = syncFilters;
   if (fdfEl) fdfEl.onchange = syncFilters;
   if (fdtEl) fdtEl.onchange = syncFilters;
-
+}
 
 
 
@@ -1489,7 +1490,7 @@ function renderCharts() {
   updateTabs();
   const events = ALL_DATA.filter(r => r.date.startsWith(currentMonth))
                          .sort((a, b) => a.date.localeCompare(b.date));
-  const container = document.getElementById('tab-content');
+  const container = document.getElementById('main-content');
   container.innerHTML = `
   <div class="charts-grid" style="grid-template-columns:repeat(2,1fr)">
     <div class="chart-card"><h3>Выручка — факт / план / С∕С</h3><div class="chart-wrap"><canvas id="chart-rev"></canvas></div></div>
@@ -1631,7 +1632,6 @@ function renderCharts() {
     ]},
     options: commonOpts(' ₽', false)
   });
-}
 }
 
 
